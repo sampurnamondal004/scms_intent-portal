@@ -6,9 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
-from backend.database import get_db
-from backend.models import IndentMaster, IndentItem
-from backend.schemas import (
+from database import get_db
+from models import IndentMaster, IndentItem
+from schemas import (
     IndentCreate, IndentApprove, IndentReject,
     IndentResponse, IndentListResponse, IndentItemResponse
 )
