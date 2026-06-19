@@ -32,9 +32,7 @@ async_session = sessionmaker(
 
 Base = declarative_base()
 
-# Path to the SQL file that creates the scms schema, tables, indexes, and the
-# pg_notify trigger. Executed once at startup so the app works against a
-# fresh database with zero manual steps.
+
 SETUP_SQL_PATH = Path(__file__).parent / "setup.sql"
 
 
