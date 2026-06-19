@@ -25,6 +25,8 @@ export default function LoginScreen({ onSignIn }) {
       setError('Captcha does not match');
       return;
     }
+    setCaptchaInput('');
+    setError('');
     onSignIn();
   }
 

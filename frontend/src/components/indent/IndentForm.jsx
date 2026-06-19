@@ -1,5 +1,5 @@
 import React from 'react';
-import { emptyItem } from '../../data/mockData';
+import { emptyItem } from '../../data/indentDefaults';
 import Input from '../ui/Input';
 import Panel from '../ui/Panel';
 
