@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: scms_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: scms
+    ports:
+      - "5432:5432"
+    volumes:
+      - scms_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: scms_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASYNC_DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/scms
+    ports:
+      - "8001:8001"
+
+volumes:
+  scms_pgdata:

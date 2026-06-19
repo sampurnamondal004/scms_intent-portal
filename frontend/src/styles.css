@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: Arial, Helvetica, ui-sans-serif, system-ui, sans-serif;
+  }
+
+  body {
+    margin: 0;
+    background: #f1f1f1;
+  }
+}
+
+@layer components {
+  .scms-login-bg {
+    background:
+      radial-gradient(circle at 88% 18%, rgba(21, 47, 145, 0.08) 0 1px, transparent 1px),
+      linear-gradient(135deg, rgba(230, 235, 241, 0.9) 0 34%, transparent 34%),
+      linear-gradient(135deg, transparent 0 72%, rgba(218, 224, 232, 0.75) 72%),
+      #eef2f5;
+    background-size: 18px 18px, 100% 100%, 100% 100%, auto;
+  }
+
+  .scms-input {
+    @apply w-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#178acb] focus:ring-2 focus:ring-[#178acb]/20;
+  }
+
+  .field-label {
+    @apply block text-xs font-bold uppercase text-slate-500;
+  }
+
+  .field-label .scms-input {
+    @apply mt-1;
+  }
+
+  .header-icon {
+    @apply grid h-9 w-9 place-items-center rounded bg-[#2f5cc8] text-sm font-bold text-white;
+  }
+
+  .captcha-box {
+    @apply flex items-center justify-center gap-1 overflow-hidden leading-none tracking-wider;
+    background:
+      linear-gradient(15deg, transparent 48%, rgba(21, 47, 145, 0.18) 49%, rgba(21, 47, 145, 0.18) 51%, transparent 52%),
+      repeating-linear-gradient(90deg, rgba(21, 47, 145, 0.08) 0 2px, transparent 2px 8px),
+      #eef2f5;
+  }
+}
