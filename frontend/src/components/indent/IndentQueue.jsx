@@ -29,15 +29,18 @@ export default function IndentQueue({
       </div>
       <DataTable
         columns={['Indent', 'Item', 'Requester', 'Status', 'Action']}
-        rows={indents.map((indent) => [
-          indent.indent_no,
-          `${indent.item_name} (${indent.quantity} ${indent.uom || ''})`,
-          indent.requested_by_name || indent.requested_by,
-          <StatusBadge status={indent.status} />,
-          <button className="rounded bg-[#178acb] px-3 py-1.5 text-xs font-semibold text-white" type="button" onClick={() => onSelect(indent)}>
-            View
-          </button>,
-        ])}
+        rows={indents.map((indent) => ({
+          id: indent.indent_id,
+          cells: [
+            indent.indent_no,
+            `${indent.item_name} (${indent.quantity} ${indent.uom || ''})`,
+            indent.requested_by_name || indent.requested_by,
+            <StatusBadge status={indent.status} />,
+            <button className="rounded bg-[#178acb] px-3 py-1.5 text-xs font-semibold text-white" type="button" onClick={() => onSelect(indent)}>
+              View
+            </button>,
+          ],
+        }))}
         footer={`Showing ${indents.length ? 1 : 0} to ${indents.length} of ${total} entries`}
       />
     </Panel>

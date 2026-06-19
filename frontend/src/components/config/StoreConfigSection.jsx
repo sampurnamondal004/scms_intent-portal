@@ -1,64 +1,64 @@
 import React, { useMemo, useState } from 'react';
-import {
-  employeeRows,
-  manufacturerRows,
-  materialRows,
-  storeRows,
-  vendorRows,
-} from '../../data/mockData';
 import ConfigModal from './ConfigModal';
 import ConfigTable from './ConfigTable';
 import ConfigTabs from './ConfigTabs';
+
+const emptyRows = [];
+const tableFooter = (count) => `Showing ${count ? 1 : 0} to ${Math.min(count, 10)} of ${count} entries`;
 
 const pageConfig = {
   store: {
     title: 'Store',
     addLabel: 'Add Store',
     columns: ['District', 'Sub-Division', 'Block', 'Store-Code', 'Store Name', 'Store Type'],
-    rows: storeRows,
+    rows: emptyRows,
     actionLabel: 'view',
-    footer: (count) => `Showing 1 to ${Math.min(count, 10)} of 70 entries`,
+    footer: tableFooter,
   },
   employee: {
     title: 'Employee',
     addLabel: 'Add Employee',
     columns: ['District', 'Sub-Division', 'Block', 'Store', 'Name', 'Designation', 'User'],
-    rows: employeeRows,
+    rows: emptyRows,
     actionLabel: 'Update',
     secondaryActionLabel: 'Change password',
-    footer: (count) => `Showing 1 to ${Math.min(count, 10)} of ${count || 1} entries`,
+    footer: tableFooter,
   },
   material: {
     title: 'Material',
     addLabel: 'Add Material',
     extraButtons: ['Add Sub-Category', 'Add Category'],
     columns: ['Description', 'Subdescription', 'Material code', 'Material description', 'BIS code', 'HSN code', 'Material unit', 'Double unit'],
-    rows: materialRows,
+    rows: emptyRows,
     actionLabel: 'Edit',
-    footer: (count) => `Showing 1 to ${Math.min(count, 10)} of 83 entries`,
+    footer: tableFooter,
   },
   vendor: {
     title: 'Supplier',
     addLabel: 'Add supplier',
     columns: ['Vendor / Supplier name', 'Description', 'Address', 'Contact No', 'Email', 'Licence no', 'Licence valid Till'],
-    rows: vendorRows,
+    rows: emptyRows,
     actionLabel: 'Edit',
-    footer: (count) => `Showing 1 to ${Math.min(count, 10)} of 17 entries`,
+    footer: tableFooter,
   },
   manufacturer: {
     title: 'Manufacturer',
     addLabel: 'Add manufacturer',
     columns: ['Manufacturer Name', 'Address', 'Website', 'Contact'],
-    rows: manufacturerRows,
+    rows: emptyRows,
     actionLabel: 'Edit',
-    footer: (count) => `Showing 1 to ${Math.min(count, 10)} of ${count} entries`,
+    footer: tableFooter,
   },
 };
 
 export default function StoreConfigSection() {
   const [activeTab, setActiveTab] = useState('store');
   const [modal, setModal] = useState(null);
+  const [rowsByTab, setRowsByTab] = useState(() =>
+    Object.fromEntries(Object.entries(pageConfig).map(([key, value]) => [key, value.rows])),
+  );
   const config = pageConfig[activeTab];
+  const rows = rowsByTab[activeTab] || [];
 
   const actionButtons = useMemo(() => {
     const buttons = [config.addLabel, ...(config.extraButtons || [])];
@@ -67,6 +67,19 @@ export default function StoreConfigSection() {
 
   function openModal(action, row) {
     setModal({ action, row });
+  }
+
+  function saveModal(values) {
+    setRowsByTab((current) => {
+      const currentRows = current[activeTab] || [];
+      if (!modal?.row) {
+        return { ...current, [activeTab]: [values, ...currentRows] };
+      }
+      return {
+        ...current,
+        [activeTab]: currentRows.map((row) => (row === modal.row ? values : row)),
+      };
+    });
   }
 
   return (
@@ -89,7 +102,7 @@ export default function StoreConfigSection() {
       </div>
       <ConfigTable
         columns={config.columns}
-        rows={config.rows}
+        rows={rows}
         footer={config.footer}
         actionLabel={config.actionLabel}
         secondaryActionLabel={config.secondaryActionLabel}
@@ -101,6 +114,7 @@ export default function StoreConfigSection() {
         row={modal?.row}
         fields={config.columns}
         onClose={() => setModal(null)}
+        onSave={saveModal}
       />
     </section>
   );
