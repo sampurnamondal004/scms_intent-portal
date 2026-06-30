@@ -1,12 +1,20 @@
 import logging
-import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
 from backend.database import init_db
-from backend.routes.indent import router as indent_router
+from backend.routes.auth          import router as auth_router
+from backend.routes.notifications  import router as notif_router
+from backend.routes.employees      import router as emp_router
+from backend.routes.materials      import router as mat_router
+from backend.routes.stores         import router as store_router
+from backend.routes.suppliers      import router as sup_router
+from backend.routes.inventory      import router as inv_router
+from backend.routes.manufacture    import router as mfg_router
+from backend.routes.chat           import router as chat_router
+from backend.routes.purchases      import router as purchase_router
+from backend.routes.indent         import router as indent_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -15,12 +23,13 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="SCMS Indent Portal",
+    title="NIC SCMS Backend",
     description=(
-        "Supply Chain Management System — Indent (purchase requisition) portal. "
-        "Integrated with the real-time notification backend via PostgreSQL pg_notify + WebSocket."
+        "Supply Chain Management System — NIC Portal. "
+        "FastAPI + PostgreSQL backend. "
+        "Includes all modules from the reference indent portal."
     ),
-    version="1.0.0"
+    version="2.0.0",
 )
 
 app.add_middleware(
@@ -30,31 +39,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(indent_router, prefix="/api/indent", tags=["Indent"])
+# ── API routes ────────────────────────────────────────────────────────────────
+app.include_router(auth_router,     prefix="/api/auth",         tags=["Auth"])
+app.include_router(notif_router,    prefix="/api/notifications", tags=["Notifications"])
+app.include_router(emp_router,      prefix="/api/employees",     tags=["Employees"])
+app.include_router(mat_router,      prefix="/api/materials",     tags=["Materials"])
+app.include_router(store_router,    prefix="/api/stores",        tags=["Stores"])
+app.include_router(sup_router,      prefix="/api/suppliers",     tags=["Suppliers"])
+app.include_router(inv_router,      prefix="/api/inventory",     tags=["Inventory"])
+app.include_router(mfg_router,      prefix="/api/manufacture",   tags=["Manufacture"])
+app.include_router(chat_router,     prefix="/api/chat",          tags=["Chat"])
+app.include_router(purchase_router, prefix="/api/purchases",     tags=["Purchases"])
+app.include_router(indent_router,   prefix="/api/indent",        tags=["Indent"])
 
 
 @app.get("/health", tags=["Root"])
 async def health():
     return {
-        "status": "SCMS Indent Portal running",
-        "port": 8001,
-        "notification_backend": "http://localhost:8000",
-        "docs": "http://localhost:8001/docs"
+        "status": "NIC SCMS Backend running",
+        "port": 8000,
+        "docs": "http://localhost:8000/docs",
     }
 
 
 @app.on_event("startup")
 async def startup():
     await init_db()
-    logger.info("SCMS Indent Portal started on port 8001")
-    logger.info("Notification backend expected at http://localhost:8000")
-
-
-# Serve the built frontend (frontend/dist) if present. Registered LAST so
-# the catch-all "/" mount never shadows the API routes or /health above —
-# Starlette matches routes in registration order.
-STATIC_DIR = os.getenv("STATIC_DIR", "frontend/dist")
-if os.path.exists(STATIC_DIR):
-    app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
-else:
-    logger.info(f"Static dir '{STATIC_DIR}' not found — frontend will not be served by this process.")
+    logger.info("NIC SCMS Backend started on http://localhost:8000")
+    logger.info("API docs: http://localhost:8000/docs")

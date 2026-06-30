@@ -16,9 +16,8 @@ ASYNC_DATABASE_URL = os.getenv("ASYNC_DATABASE_URL")
 if not ASYNC_DATABASE_URL:
     raise RuntimeError(
         "ASYNC_DATABASE_URL is not set.\n"
-        "Copy backend/.env.example to backend/.env and point it at your "
-        "PostgreSQL instance, e.g.:\n"
-        "  ASYNC_DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/scms\n"
+        "Copy backend/.env.example to backend/.env and fill in your PostgreSQL URL, e.g.:\n"
+        "  ASYNC_DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/scms\n"
         "See README.md for full setup instructions."
     )
 
@@ -32,7 +31,6 @@ async_session = sessionmaker(
 
 Base = declarative_base()
 
-
 SETUP_SQL_PATH = Path(__file__).parent / "setup.sql"
 
 
@@ -41,41 +39,20 @@ async def get_db():
         yield session
 
 
-_NOTIFICATIONS_SQL = """
-CREATE TABLE IF NOT EXISTS public.notifications (
-    notification_id SERIAL PRIMARY KEY,
-    user_id          INTEGER NOT NULL,
-    message          TEXT NOT NULL,
-    is_read          BOOLEAN NOT NULL DEFAULT FALSE,
-    created_on       TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-"""
-
-
 async def init_db() -> None:
-    """Idempotently create everything the app needs: the scms schema/tables
-    (from setup.sql) and the public.notifications table the notification
-    backend reads from. Safe to run on every startup.
-
-    Uses a raw asyncpg connection (not the SQLAlchemy engine) because
-    setup.sql contains multiple statements separated by semicolons, and
-    asyncpg's prepared-statement execute path (which SQLAlchemy's
-    create_async_engine uses) cannot run more than one command at a time.
+    """Idempotently create all SCMS tables from setup.sql.
+    Uses raw asyncpg (not SQLAlchemy) because setup.sql contains multiple
+    semicolon-separated statements — identical pattern to the reference project.
     """
-    setup_sql = SETUP_SQL_PATH.read_text()
-    # asyncpg.connect() wants a plain "postgresql://" DSN, not the
-    # SQLAlchemy "postgresql+asyncpg://" URL.
+    setup_sql = SETUP_SQL_PATH.read_text(encoding="utf-8")
+
+    # asyncpg.connect() needs plain postgresql:// not postgresql+asyncpg://
     dsn = ASYNC_DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://", 1)
 
     conn = await asyncpg.connect(dsn)
     try:
         await conn.execute(setup_sql)
-        # public.notifications is normally owned by the separate real-time
-        # notification backend, but we create it here too (IF NOT EXISTS)
-        # so this service is fully self-contained and never silently drops
-        # notifications just because that other service hasn't run yet.
-        await conn.execute(_NOTIFICATIONS_SQL)
     finally:
         await conn.close()
 
-    logger.info("Database schema verified/created (scms.*, public.notifications)")
+    logger.info("Database schema verified / created (scms.*, public.*)")
