@@ -62,7 +62,6 @@ async def create_indent(
 
     if payload.approver_id:
         await send_notification(
-            db,
             user_id=payload.approver_id,
             message=(
                 f"New indent {indent.indent_no} created by "
@@ -162,7 +161,6 @@ async def approve_indent(
 
 
     await send_notification(
-        db,
         user_id=indent.requested_by,
         message=(
             f" Your indent {indent.indent_no} for {indent.item_name} x{indent.quantity} "
@@ -202,7 +200,6 @@ async def reject_indent(
 
     
     await send_notification(
-        db,
         user_id=indent.requested_by,
         message=(
             f" Your indent {indent.indent_no} for {indent.item_name} x{indent.quantity} "

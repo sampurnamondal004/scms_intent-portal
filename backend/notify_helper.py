@@ -1,20 +1,23 @@
 import logging
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import text
- 
+import os
+
+import httpx
+
 logger = logging.getLogger(__name__)
- 
- 
-async def send_notification(db: AsyncSession, user_id: int, message: str) -> None:
+
+NOTIFICATION_SERVICE_URL = os.getenv(
+    "NOTIFICATION_SERVICE_URL", "http://localhost:8000"
+)
+
+
+async def send_notification(user_id: int, message: str) -> None:
+    url = f"{NOTIFICATION_SERVICE_URL}/api/notifications/send"
+    payload = {"user_id": user_id, "message": message}
+
     try:
-        await db.execute(
-            text(
-                "INSERT INTO public.notifications (user_id, message) "
-                "VALUES (:user_id, :message)"
-            ),
-            {"user_id": user_id, "message": message},
-        )
-        await db.commit()
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.post(url, json=payload)
+            response.raise_for_status()
         logger.info(f"Notification -> user {user_id}: {message}")
     except Exception as e:
-        logger.error(f"Notification failed: {e}")
+        logger.error(f"Notification service call failed: {e}")
